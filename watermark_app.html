@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero-Width Watermarking - Cybersecurity Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; }
+        .cyber-button { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); transition: all 0.3s ease; }
+        .cyber-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+        .accent-color { color: #00d2ff; }
+        .border-accent { border-color: #00d2ff; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold mb-2 tracking-tight">ZERO-WIDTH <span class="accent-color">WATERMARKING</span></h1>
+            <p class="text-gray-400">Görünmez Veri İşleme ve Sızıntı Analiz Platformu</p>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Encode Section -->
+            <section class="glass p-6">
+                <div class="flex items-center mb-4">
+                    <i class="fa-solid fa-shield-halved accent-color mr-3 text-xl"></i>
+                    <h2 class="text-xl font-semibold">Filigran Ekle (Encode)</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Kurumsal Veri / Hassas Metin</label>
+                        <textarea id="encodeInput" class="w-full h-40 bg-black border border-gray-800 rounded-lg p-3 focus:outline-none focus:border-accent" placeholder="Buraya sızdırılacak veriyi yapıştırın..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Çalışan Tanımlayıcı (ID)</label>
+                        <input type="text" id="employeeId" class="w-full bg-black border border-gray-800 rounded-lg p-3 focus:outline-none focus:border-accent" placeholder="Örn: Ahmet - Sicil No 482">
+                    </div>
+                    <button onclick="encode()" class="w-full cyber-button text-white font-bold py-3 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-fingerprint mr-2"></i> Filigran Ekle ve Kopyala
+                    </button>
+                    <div id="encodeStatus" class="hidden text-sm text-green-400 text-center">
+                        <i class="fa-solid fa-check mr-1"></i> Filigranlı metin panoya kopyalandı!
+                    </div>
+                </div>
+            </section>
+
+            <!-- Decode Section -->
+            <section class="glass p-6">
+                <div class="flex items-center mb-4">
+                    <i class="fa-solid fa-magnifying-glass-chart accent-color mr-3 text-xl"></i>
+                    <h2 class="text-xl font-semibold">Sızıntı Analizörü (Decode)</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Şüpheli Sızıntı Metni</label>
+                        <textarea id="decodeInput" class="w-full h-40 bg-black border border-gray-800 rounded-lg p-3 focus:outline-none focus:border-accent" placeholder="Analiz edilecek metni buraya yapıştırın..."></textarea>
+                    </div>
+                    <button onclick="decode()" class="w-full border border-accent accent-color font-bold py-3 rounded-lg hover:bg-accent-color hover:text-black transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-radar mr-2"></i> Analiz Et
+                    </button>
+                    
+                    <div id="decodeResult" class="hidden p-4 rounded-lg border bg-red-950/20 border-red-900">
+                        <h3 class="text-red-500 font-bold mb-1 flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation mr-2"></i> VERİ SIZINTISI TESPİT EDİLDİ
+                        </h3>
+                        <p class="text-sm">Sızdıran Çalışan: <span id="leakOwner" class="font-mono text-white underline decoration-red-500"></span></p>
+                    </div>
+                    <div id="noResult" class="hidden p-4 rounded-lg border bg-green-950/20 border-green-900">
+                        <p class="text-green-500 text-sm flex items-center">
+                            <i class="fa-solid fa-circle-check mr-2"></i> Herhangi bir gizli filigran bulunamadı.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Tech Explanation -->
+        <footer class="mt-12 glass p-8">
+            <h3 class="text-lg font-bold mb-4 flex items-center">
+                <i class="fa-solid fa-circle-info accent-color mr-2"></i> Zero-Width Watermarking Nedir?
+            </h3>
+            <div class="grid md:grid-cols-2 gap-8 text-sm text-gray-400 leading-relaxed">
+                <p>
+                    Zero-width unicode karakterleri (\u200B, \u200C, \u200D, \uFEFF) modern yazı sistemlerinde kullanılan ancak görsel olarak yer kaplamayan karakterlerdir. 
+                    Bu teknoloji, metnin içine binary formatında (0 ve 1'ler) veri saklamamıza olanak tanır.
+                </p>
+                <p>
+                    Bir çalışan hassas bir belgeyi kopyalayıp dışarı sızdırdığında, bu görünmez karakterler de metinle birlikte taşınır. 
+                    Analiz aracımız bu dizileri bularak sızıntının tam kaynağını (çalışan adı, tarih, departman vb.) kesin olarak tespit eder.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const zwChars = ['\u200B', '\u200C', '\u200D', '\uFEFF'];
+
+        function textToBinary(text) {
+            return text.split('').map(char => char.charCodeAt(0).toString(2).padStart(16, '0')).join('');
+        }
+
+        function binaryToText(bin) {
+            let text = '';
+            for (let i = 0; i < bin.length; i += 16) {
+                text += String.fromCharCode(parseInt(bin.substr(i, 16), 2));
+            }
+            return text;
+        }
+
+        function encode() {
+            const text = document.getElementById('encodeInput').value;
+            const id = document.getElementById('employeeId').value;
+            const status = document.getElementById('encodeStatus');
+            
+            if (!text || !id) return;
+
+            const binary = textToBinary(id);
+            let watermark = '';
+            
+            // Binary encode: 0 -> \u200B, 1 -> \u200C
+            // Use \u200D as start marker and \uFEFF as end marker
+            watermark += '\u200D';
+            for (let bit of binary) {
+                watermark += bit === '0' ? '\u200B' : '\u200C';
+            }
+            watermark += '\uFEFF';
+
+            // Inject after first space or at beginning
+            const spaceIdx = text.indexOf(' ');
+            const result = spaceIdx !== -1 
+                ? text.slice(0, spaceIdx + 1) + watermark + text.slice(spaceIdx + 1)
+                : watermark + text;
+
+            navigator.clipboard.writeText(result);
+            status.classList.remove('hidden');
+            setTimeout(() => status.classList.add('hidden'), 3000);
+        }
+
+        function decode() {
+            const input = document.getElementById('decodeInput').value;
+            const resultBox = document.getElementById('decodeResult');
+            const noBox = document.getElementById('noResult');
+            const leakSpan = document.getElementById('leakOwner');
+
+            resultBox.classList.add('hidden');
+            noBox.classList.add('hidden');
+
+            const startIdx = input.indexOf('\u200D');
+            const endIdx = input.indexOf('\uFEFF');
+
+            if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+                const watermark = input.slice(startIdx + 1, endIdx);
+                let binary = '';
+                for (let char of watermark) {
+                    if (char === '\u200B') binary += '0';
+                    else if (char === '\u200C') binary += '1';
+                }
+                
+                try {
+                    const decoded = binaryToText(binary);
+                    leakSpan.innerText = decoded;
+                    resultBox.classList.remove('hidden');
+                } catch (e) {
+                    noBox.classList.remove('hidden');
+                }
+            } else {
+                noBox.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

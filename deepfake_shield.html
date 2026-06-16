@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSec Shield - YK Ses ve Görüntü Doğrulama Kalkanı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --neon-green: #00ff41;
+            --warning-red: #ff3131;
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Space+Grotesk', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, #020617 100%),
+                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .neon-border-green { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); }
+        .neon-border-red { border-color: var(--warning-red); box-shadow: 0 0 15px rgba(255, 49, 49, 0.2); }
+        
+        .glow-text-green { text-shadow: 0 0 10px rgba(0, 255, 65, 0.5); color: var(--neon-green); }
+        .glow-text-red { text-shadow: 0 0 10px rgba(255, 49, 49, 0.5); color: var(--warning-red); }
+
+        .radar-scanner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--neon-green);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+        .radar-scanner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 255, 65, 0.4) 360deg);
+            transform-origin: 0% 0%;
+            animation: rotate 2s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .face-box {
+            position: absolute;
+            border: 2px solid var(--neon-green);
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        .face-box::before {
+            content: 'YÜZ DOĞRULANIYOR';
+            position: absolute;
+            top: -25px;
+            left: 0;
+            font-size: 10px;
+            color: var(--neon-green);
+            white-space: nowrap;
+        }
+
+        .glitch-active {
+            animation: glitch 0.2s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); filter: invert(0.1); }
+            80% { transform: translate(5px, 5px); }
+            100% { transform: translate(0); }
+        }
+
+        .shaking {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.3);
+            position: absolute;
+            top: 0;
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        input[type="range"] {
+            accent-color: var(--neon-green);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4 glass-card p-6 border-b-2 neon-border-green">
+        <div class="flex items-center gap-4">
+            <div class="radar-scanner"></div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter">DEEP<span class="text-emerald-500">SEC</span> SHIELD</h1>
+                <p class="text-xs text-slate-400">Yapay Zeka Ses & Görüntü Analiz Kalkanı v2.4.0</p>
+            </div>
+        </div>
+        <div class="flex gap-6 items-center">
+            <div class="text-right">
+                <div id="system-status" class="text-sm font-bold glow-text-green">Sistem Durumu: ÇEVRİMİÇİ</div>
+                <div class="text-[10px] text-slate-500">Lisans: KURUMSAL (Aktif: 365 Gün)</div>
+            </div>
+            <div class="h-10 w-[1px] bg-slate-700 hidden md:block"></div>
+            <div class="text-[10px] hidden md:block font-mono text-emerald-500/50">
+                IP: 192.168.1.104<br>
+                ENC: AES-256-GCM
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Video Analysis Card -->
+        <section id="video-card" class="glass-card p-6 flex flex-col h-full overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    CANLI GÖRÜNTÜ ANALİZİ
+                </h2>
+                <span class="text-[10px] font-mono opacity-50">720p / 60 FPS</span>
+            </div>
+
+            <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover grayscale-[30%]"></video>
+                <div id="video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20 hidden">
+                    <div class="w-16 h-16 border-t-2 border-emerald-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-sm text-slate-400">Kamera Erişimi Bekleniyor...</p>
+                </div>
+                <div id="face-overlay" class="face-box top-1/4 left-1/4 w-1/2 h-1/2"></div>
+                <div class="scanline"></div>
+                
+                <!-- Video HUD -->
+                <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none">
+                    <div class="space-y-1">
+                        <div class="text-[10px] font-mono text-emerald-400 bg-black/50 p-1 px-2 rounded">GÖZ KIRPMA: <span id="blink-val">98%</span></div>
+                        <div class="text-[10px] font-mono text-emerald-400 bg-black/50 p-1 px-2 rounded">GÖLGE SENK: <span id="shadow-val">KARARLI</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div id="trust-score" class="text-2xl font-bold glow-text-green">98.2%</div>
+                        <div class="text-[8px] font-mono opacity-70 uppercase tracking-widest">GÜVEN ENDEKSİ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="simulate(true, 'video')" class="bg-emerald-900/30 hover:bg-emerald-800/40 border border-emerald-500/50 p-3 rounded-lg text-xs font-bold transition-all">
+                    SİMÜLE ET: GERÇEK İNSAN
+                </button>
+                <button onclick="simulate(false, 'video')" class="bg-red-900/30 hover:bg-red-800/40 border border-red-500/50 p-3 rounded-lg text-xs font-bold transition-all">
+                    SİMÜLE ET: DEEPFAKE
+                </button>
+            </div>
+            
+            <div id="video-alert" class="mt-4 p-3 rounded bg-red-950/50 border border-red-500 hidden">
+                <div class="flex items-center gap-3">
+                    <div class="animate-ping w-2 h-2 rounded-full bg-red-500"></div>
+                    <div class="text-xs font-bold text-red-500">TEHLİKE: SENTETİK YÜZ SENTEZİ ALGILANDI</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Audio Analysis Card -->
+        <section id="audio-card" class="glass-card p-6 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    CANLI SES ANALİZİ
+                </h2>
+                <span class="text-[10px] font-mono opacity-50">48kHz / 32-bit PCM</span>
+            </div>
+
+            <div class="relative w-full aspect-video bg-black/40 rounded-lg overflow-hidden border border-slate-800 p-8 flex flex-col justify-center">
+                <canvas id="visualizer" class="w-full h-32"></canvas>
+                
+                <!-- Audio Stats Overlay -->
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900/50 p-2 rounded border border-slate-800">
+                        <div class="text-[9px] text-slate-500 mb-1">ROBOTİK SAPMA</div>
+                        <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="robotic-bar" class="h-full bg-emerald-500 w-[2%]"></div>
+                        </div>
+                        <div id="robotic-val" class="text-[10px] mt-1 font-mono">0.02ms</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-2 rounded border border-slate-800">
+                        <div class="text-[9px] text-slate-500 mb-1">YAPAY BOŞLUK</div>
+                        <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="void-bar" class="h-full bg-emerald-500 w-[1%]"></div>
+                        </div>
+                        <div id="void-val" class="text-[10px] mt-1 font-mono">1%</div>
+                    </div>
+                </div>
+
+                <div id="audio-status-box" class="absolute top-4 right-4 text-right">
+                    <div id="audio-trust" class="text-xl font-bold glow-text-green">TEMİZ</div>
+                    <div class="text-[8px] font-mono opacity-50 uppercase">SINIFLANDIRMA</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="simulate(true, 'audio')" class="bg-emerald-900/30 hover:bg-emerald-800/40 border border-emerald-500/50 p-3 rounded-lg text-xs font-bold transition-all">
+                    SİMÜLE ET: GERÇEK SES
+                </button>
+                <button onclick="simulate(false, 'audio')" class="bg-red-900/30 hover:bg-red-800/40 border border-red-500/50 p-3 rounded-lg text-xs font-bold transition-all">
+                    SİMÜLE ET: SES KLONU
+                </button>
+            </div>
+
+            <div id="audio-alert" class="mt-4 p-3 rounded bg-red-950/50 border border-red-500 hidden">
+                <div class="flex items-center gap-3">
+                    <div class="animate-ping w-2 h-2 rounded-full bg-red-500"></div>
+                    <div class="text-xs font-bold text-red-500">ALARM: YAPAY SES SENTEZİ TESPİT EDİLDİ</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pitch Deck Section -->
+        <section class="lg:col-span-2 glass-card p-8 bg-gradient-to-r from-slate-900/50 to-emerald-950/20">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
+                <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                Stratejik Savunma Özet (Pitch Deck)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="space-y-3">
+                    <h3 class="text-emerald-400 font-bold text-sm">Regülasyon Uyumu</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">KVKK, BDDK ve CBDO siber güvenlik yönergeleriyle %100 uyumlu mimari. Bankacılık ve kritik kamu altyapıları için hazır.</p>
+                </div>
+                <div class="space-y-3">
+                    <h3 class="text-emerald-400 font-bold text-sm">Kesintisiz Entegrasyon</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Zoom, Microsoft Teams ve Google Meet için düşük gecikmeli API desteği. Mevcut video konferans yapılarına 15 dakikada entegre olur.</p>
+                </div>
+                <div class="space-y-3">
+                    <h3 class="text-emerald-400 font-bold text-sm">Maddi Kayıp Önleme</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">CEO Fraud ve finansal transfer yetkilendirmelerinde ses klonlama saldırılarını %99.9 doğrulukla engeller.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const placeholder = document.getElementById('video-placeholder');
+        const faceOverlay = document.getElementById('face-overlay');
+        const visualizer = document.getElementById('visualizer');
+        const canvasCtx = visualizer.getContext('2d');
+        let audioCtx, analyser, dataArray;
+        let isDeepfakeSim = false;
+
+        // Initialize Camera
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                video.srcObject = stream;
+                initAudio(stream);
+            } catch (err) {
+                console.warn("Camera denied:", err);
+                placeholder.classList.remove('hidden');
+                video.classList.add('opacity-10');
+            }
+        }
+
+        // Initialize Audio Visualizer
+        function initAudio(stream) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaStreamSource(stream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            source.connect(analyser);
+            
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            draw();
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            const width = visualizer.width;
+            const height = visualizer.height;
+            analyser.getByteFrequencyData(dataArray);
+
+            canvasCtx.clearRect(0, 0, width, height);
+            const barWidth = (width / dataArray.length) * 2.5;
+            let x = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * height;
+                const r = isDeepfakeSim ? 255 : 0;
+                const g = isDeepfakeSim ? 0 : 255;
+                const b = isDeepfakeSim ? 0 : 100;
+                canvasCtx.fillStyle = `rgb(${r},${g},${b})`;
+                canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
+                x += barWidth + 2;
+            }
+
+            // Update some random telemetry
+            if (!isDeepfakeSim) {
+                document.getElementById('blink-val').innerText = (95 + Math.random() * 4).toFixed(1) + '%';
+            }
+        }
+
+        // Glitch Sound Synthesis
+        function playGlitchSound() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.5);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            
+            oscillator.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Simulation Engine
+        function simulate(isReal, type) {
+            const body = document.body;
+            const status = document.getElementById('system-status');
+            
+            if (isReal) {
+                isDeepfakeSim = false;
+                body.classList.remove('shaking');
+                status.innerText = 'Sistem Durumu: ÇEVRİMİÇİ';
+                status.className = 'text-sm font-bold glow-text-green';
+                
+                if (type === 'video') {
+                    document.getElementById('video-card').className = 'glass-card p-6 flex flex-col h-full overflow-hidden neon-border-green';
+                    document.getElementById('video-alert').classList.add('hidden');
+                    document.getElementById('trust-score').innerText = '98.2%';
+                    document.getElementById('trust-score').className = 'text-2xl font-bold glow-text-green';
+                    faceOverlay.className = 'face-box top-1/4 left-1/4 w-1/2 h-1/2 neon-border-green';
+                    video.classList.remove('glitch-active');
+                } else {
+                    document.getElementById('audio-card').className = 'glass-card p-6 flex flex-col h-full neon-border-green';
+                    document.getElementById('audio-alert').classList.add('hidden');
+                    document.getElementById('audio-trust').innerText = 'TEMİZ';
+                    document.getElementById('audio-trust').className = 'text-xl font-bold glow-text-green';
+                    document.getElementById('robotic-bar').style.width = '2%';
+                    document.getElementById('robotic-val').innerText = '0.02ms';
+                    document.getElementById('void-bar').style.width = '1%';
+                    document.getElementById('void-val').innerText = '1%';
+                }
+            } else {
+                isDeepfakeSim = true;
+                playGlitchSound();
+                body.classList.add('shaking');
+                status.innerText = 'Sistem Durumu: KRİTİK TEHLİKE';
+                status.className = 'text-sm font-bold glow-text-red';
+
+                if (type === 'video') {
+                    document.getElementById('video-card').className = 'glass-card p-6 flex flex-col h-full overflow-hidden border-2 neon-border-red';
+                    document.getElementById('video-alert').classList.remove('hidden');
+                    document.getElementById('trust-score').innerText = '12.4%';
+                    document.getElementById('trust-score').className = 'text-2xl font-bold glow-text-red';
+                    faceOverlay.className = 'face-box top-1/4 left-1/4 w-1/2 h-1/2 neon-border-red';
+                    video.classList.add('glitch-active');
+                    document.getElementById('blink-val').innerText = '0.0%';
+                    document.getElementById('shadow-val').innerText = 'UYUMSUZ';
+                } else {
+                    document.getElementById('audio-card').className = 'glass-card p-6 flex flex-col h-full border-2 neon-border-red';
+                    document.getElementById('audio-alert').classList.remove('hidden');
+                    document.getElementById('audio-trust').innerText = 'SENTETİK';
+                    document.getElementById('audio-trust').className = 'text-xl font-bold glow-text-red';
+                    document.getElementById('robotic-bar').style.width = '88%';
+                    document.getElementById('robotic-val').innerText = '14.50ms';
+                    document.getElementById('void-bar').style.width = '92%';
+                    document.getElementById('void-val').innerText = '92%';
+                }
+
+                setTimeout(() => body.classList.remove('shaking'), 500);
+            }
+        }
+
+        initCamera();
+    </script>
+</body>
+</html>
