@@ -1,8 +1,8 @@
-id,Title,Content_Type,Category,Language
-54,"Kanser Sonrasi Hayata Donus Neden Zordur?",Blog Post,Oncology/Wellness,tr
-55,"MENOPOZDA KENDINE RESET PROGRAMI-1",Webinar/Program,Sexual Health/Menopause,tr
-56,"ILK GECE KORKUSU NEDEN YASANIR?",Blog Post,Sexual Health/Menopause,tr
-57,"DOGUM SONRASI CINSELLIK NASIL OLMALI?",Blog Post,Sexual Health/Menopause,tr
-58,"CINSEL TERAPIST NE YAPAR?",Blog Post,Sexual Health/Menopause,tr
-59,"RAHIM AGZI KANSERI NEDEN OLUSUR?",Blog Post,Oncology/Wellness,tr
-60,"Meme Kanseri Sonrasi Yeni Yasama Uyum",Webinar/Program,Oncology/Wellness,tr
+id,Title,Category,Tags
+54,"Kanser Sonrasi Hayata Donus Neden Zordur?",Blog,Kanser
+59,"Meme Kanseri Sonrasi Yeni Yasama Uyum",Online Webinar,Meme Kanseri
+60,"MENOPOZDA KENDINE RESET PROGRAMI-1",New Export,XML
+61,"ILK GECE KORKUSU NEDEN YASANIR?",New Export,XML
+62,"DOGUM SONRASI CINSELLIK NASIL OLMALI ?",New Export,XML
+63,"CINSEL TERAPIST NE YAPAR?",New Export,XML
+64,"RAHİM AĞZI KANSERİ NEDEN OLUŞUR?",New Export,XML
